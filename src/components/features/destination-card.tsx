@@ -12,8 +12,8 @@ interface DestinationCardProps {
     name: string
     country: string
     imageUrl: string
-    wifiSpeed: number
-    costOfLiving: number
+    wifiSpeed: number | null
+    costOfLiving: number | null
     weather: string
   }
 }
@@ -54,11 +54,11 @@ export function DestinationCard({ destination }: DestinationCardProps) {
         <CardContent className="flex items-center gap-4 p-5 pt-4">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-300">
             <Wifi className="size-3.5" />
-            {destination.wifiSpeed} Mbps
+            {destination.wifiSpeed != null ? `${destination.wifiSpeed} Mbps` : "N/A"}
           </div>
           <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-200">
             <DollarSign className="size-3.5" />
-            ${destination.costOfLiving}/mo
+            {destination.costOfLiving != null ? `$${destination.costOfLiving}/mo` : "N/A"}
           </div>
         </CardContent>
       </Card>

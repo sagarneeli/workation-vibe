@@ -27,8 +27,8 @@ export function toDestinationCardData(destination: Destination) {
     name: destination.name,
     country: destination.country,
     imageUrl: destination.imageUrl ?? DEFAULT_DESTINATION_IMAGE,
-    wifiSpeed: destination.wifiSpeed ?? 0,
-    costOfLiving: destination.costOfLiving ?? 0,
+    wifiSpeed: destination.wifiSpeed,
+    costOfLiving: destination.costOfLiving,
     weather: destination.weather ?? "Unknown",
   }
 }

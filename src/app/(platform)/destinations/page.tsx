@@ -1,4 +1,5 @@
 import { Metadata } from "next"
+import { Prisma } from "@prisma/client"
 import { Globe2, Sparkles, TrendingUp } from "lucide-react"
 
 import { DestinationCard } from "@/components/features/destination-card"
@@ -11,11 +12,75 @@ export const metadata: Metadata = {
   description: "Find your next workation spot.",
 }
 
-export default async function DestinationsPage() {
-  const destinations = await prisma.destination.findMany({
-    orderBy: [{ updatedAt: "desc" }],
-    take: 24,
-  })
+interface DestinationsPageProps {
+  searchParams: Promise<{
+    budget?: string
+    climate?: string
+    lifestyle?: string
+  }>
+}
+
+const MAX_BUDGET = 5000
+
+export default async function DestinationsPage({ searchParams }: DestinationsPageProps) {
+  const params = await searchParams
+
+  const budget = Number(params.budget)
+  const maxBudget = Number.isFinite(budget) && budget > 0 ? Math.min(budget, MAX_BUDGET) : MAX_BUDGET
+  const climate = (params.climate ?? "").trim()
+  const lifestyles = (params.lifestyle ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+
+  const andConditions: Prisma.DestinationWhereInput[] = []
+
+  if (maxBudget < MAX_BUDGET) {
+    andConditions.push({
+      costOfLiving: {
+        lte: maxBudget,
+      },
+    })
+  }
+
+  if (climate) {
+    andConditions.push({
+      weather: {
+        equals: climate,
+        mode: "insensitive",
+      },
+    })
+  }
+
+  if (lifestyles.length > 0) {
+    andConditions.push({
+      OR: lifestyles.map((value) => ({
+        lifestyle: {
+          contains: value,
+          mode: "insensitive",
+        },
+      })),
+    })
+  }
+
+  const where: Prisma.DestinationWhereInput = andConditions.length > 0 ? { AND: andConditions } : {}
+
+  const [destinations, filterOptions] = await Promise.all([
+    prisma.destination.findMany({
+      where,
+      orderBy: [{ updatedAt: "desc" }],
+      take: 48,
+    }),
+    prisma.destination.findMany({
+      select: {
+        weather: true,
+        lifestyle: true,
+      },
+    }),
+  ])
+
+  const climates = [...new Set(filterOptions.map((destination) => destination.weather).filter(Boolean))] as string[]
+  const lifestyleValues = [...new Set(filterOptions.map((destination) => destination.lifestyle).filter(Boolean))] as string[]
 
   const cardDestinations = destinations.map(toDestinationCardData)
   const destinationsWithWifi = destinations.filter((destination) => destination.wifiSpeed != null)
@@ -76,7 +141,13 @@ export default async function DestinationsPage() {
       <section className="flex flex-col gap-6 lg:flex-row lg:gap-8">
         <aside className="w-full lg:w-80 lg:shrink-0">
           <div className="glass-surface sticky top-24 p-5 sm:p-6">
-            <DestinationFilters />
+            <DestinationFilters
+              initialBudget={maxBudget}
+              initialClimate={climate}
+              initialLifestyles={lifestyles}
+              climates={climates.sort((a, b) => a.localeCompare(b))}
+              lifestyles={lifestyleValues.sort((a, b) => a.localeCompare(b))}
+            />
           </div>
         </aside>
 
@@ -100,7 +171,7 @@ export default async function DestinationsPage() {
 
           {cardDestinations.length === 0 ? (
             <div className="glass-surface rounded-2xl p-8 text-center text-muted-foreground">
-              No destinations found yet. Seed your database to get started.
+              No destinations match the current filters. Try relaxing budget, climate, or lifestyle filters.
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 2xl:grid-cols-3">
