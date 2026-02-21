@@ -1,66 +1,67 @@
 import Link from "next/link"
-import { MapPin, Wifi, DollarSign } from "lucide-react"
-
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-
 import Image from "next/image"
+import { ArrowUpRight, DollarSign, MapPin, Wifi } from "lucide-react"
+
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 interface DestinationCardProps {
-    destination: {
-        id: string
-        slug: string
-        name: string
-        country: string
-        imageUrl: string
-        wifiSpeed: number
-        costOfLiving: number
-        weather: string
-    }
+  destination: {
+    id: string
+    slug: string
+    name: string
+    country: string
+    imageUrl: string
+    wifiSpeed: number
+    costOfLiving: number
+    weather: string
+  }
 }
 
 export function DestinationCard({ destination }: DestinationCardProps) {
-    return (
-        <Link href={`/destinations/${destination.slug}`}>
-            <Card className="h-full overflow-hidden transition-all hover:border-sidebar-primary/50 hover:shadow-md">
-                <div className="relative aspect-[4/3] w-full overflow-hidden">
-                    <Image
-                        src={destination.imageUrl}
-                        alt={destination.name}
-                        fill
-                        className="object-cover transition-transform hover:scale-105"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                    <div className="absolute top-2 right-2">
-                        <Badge variant="secondary" className="bg-background/80 backdrop-blur">
-                            {destination.weather}
-                        </Badge>
-                    </div>
-                </div>
-                <CardHeader className="p-4 pb-2">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h3 className="font-semibold tracking-tight text-lg">{destination.name}</h3>
-                            <div className="flex items-center text-sm text-muted-foreground mt-1">
-                                <MapPin className="mr-1 h-3 w-3" />
-                                {destination.country}
-                            </div>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="p-4 pt-2">
-                    <div className="flex gap-4 text-sm">
-                        <div className="flex items-center gap-1.5" title="Internet Speed">
-                            <Wifi className="h-4 w-4 text-emerald-500" />
-                            <span className="font-medium">{destination.wifiSpeed} Mbps</span>
-                        </div>
-                        <div className="flex items-center gap-1.5" title="Monthly Cost">
-                            <DollarSign className="h-4 w-4 text-amber-500" />
-                            <span className="font-medium">${destination.costOfLiving}/mo</span>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-        </Link>
-    )
+  return (
+    <Link href={`/destinations/${destination.slug}`} className="group block h-full">
+      <Card className="glass-surface h-full overflow-hidden border-border/70 py-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_28px_55px_-28px_rgba(16,46,80,0.7)]">
+        <div className="relative aspect-[4/3] overflow-hidden">
+          <Image
+            src={destination.imageUrl}
+            alt={destination.name}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+            className="object-cover transition duration-500 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
+
+          <Badge className="absolute left-3 top-3 rounded-full bg-background/75 px-2.5 py-1 text-[11px] text-foreground/90 backdrop-blur">
+            {destination.weather}
+          </Badge>
+
+          <div className="absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full bg-background/70 text-foreground/80 backdrop-blur transition group-hover:bg-primary group-hover:text-primary-foreground">
+            <ArrowUpRight className="size-4" />
+          </div>
+        </div>
+
+        <CardHeader className="gap-3 p-5 pb-1">
+          <div className="space-y-1">
+            <h3 className="text-xl font-semibold tracking-tight">{destination.name}</h3>
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <MapPin className="size-3.5" />
+              {destination.country}
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="flex items-center gap-4 p-5 pt-4">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-300">
+            <Wifi className="size-3.5" />
+            {destination.wifiSpeed} Mbps
+          </div>
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-200">
+            <DollarSign className="size-3.5" />
+            ${destination.costOfLiving}/mo
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  )
 }
