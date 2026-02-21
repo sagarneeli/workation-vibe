@@ -48,6 +48,9 @@ if (process.env.NODE_ENV !== "production") {
 
 export const authConfig = {
     providers,
+    pages: {
+        signIn: "/signin",
+    },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
             const isLoggedIn = !!auth?.user
