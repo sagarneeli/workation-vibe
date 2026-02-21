@@ -37,6 +37,7 @@ if (process.env.NODE_ENV !== "production") {
                         id: "demo-user",
                         name: "Demo User",
                         email: expectedEmail,
+                        role: "USER",
                     }
                 }
 
