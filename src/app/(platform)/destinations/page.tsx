@@ -3,76 +3,42 @@ import { Globe2, Sparkles, TrendingUp } from "lucide-react"
 
 import { DestinationCard } from "@/components/features/destination-card"
 import { DestinationFilters } from "@/components/features/destination-filters"
+import { prisma } from "@/lib/prisma"
+import { toDestinationCardData } from "@/lib/content"
 
 export const metadata: Metadata = {
   title: "Destinations - Workation Vibe",
   description: "Find your next workation spot.",
 }
 
-const destinations = [
-  {
-    id: "1",
-    slug: "bali-indonesia",
-    name: "Bali, Indonesia",
-    country: "Indonesia",
-    imageUrl: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=800",
-    wifiSpeed: 45,
-    costOfLiving: 1200,
-    weather: "Tropical",
-  },
-  {
-    id: "2",
-    slug: "lisbon-portugal",
-    name: "Lisbon, Portugal",
-    country: "Portugal",
-    imageUrl: "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?auto=format&fit=crop&q=80&w=800",
-    wifiSpeed: 85,
-    costOfLiving: 2100,
-    weather: "Temperate",
-  },
-  {
-    id: "3",
-    slug: "chiang-mai-thailand",
-    name: "Chiang Mai, Thailand",
-    country: "Thailand",
-    imageUrl: "https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&q=80&w=800",
-    wifiSpeed: 50,
-    costOfLiving: 900,
-    weather: "Tropical",
-  },
-  {
-    id: "4",
-    slug: "medellin-colombia",
-    name: "Medellin, Colombia",
-    country: "Colombia",
-    imageUrl: "https://images.unsplash.com/photo-1619546952812-520e98064a52?auto=format&fit=crop&q=80&w=800",
-    wifiSpeed: 60,
-    costOfLiving: 1100,
-    weather: "Temperate",
-  },
-  {
-    id: "5",
-    slug: "canggu-bali",
-    name: "Canggu, Bali",
-    country: "Indonesia",
-    imageUrl: "https://images.unsplash.com/photo-1573790387438-4da905039392?auto=format&fit=crop&q=80&w=800",
-    wifiSpeed: 55,
-    costOfLiving: 1500,
-    weather: "Tropical",
-  },
-  {
-    id: "6",
-    slug: "mexico-city",
-    name: "Mexico City, Mexico",
-    country: "Mexico",
-    imageUrl: "https://images.unsplash.com/photo-1518638150340-f706e86654de?auto=format&fit=crop&q=80&w=800",
-    wifiSpeed: 70,
-    costOfLiving: 1800,
-    weather: "Temperate",
-  },
-]
+export default async function DestinationsPage() {
+  const destinations = await prisma.destination.findMany({
+    orderBy: [{ updatedAt: "desc" }],
+    take: 24,
+  })
 
-export default function DestinationsPage() {
+  const cardDestinations = destinations.map(toDestinationCardData)
+  const destinationsWithWifi = destinations.filter((destination) => destination.wifiSpeed != null)
+  const destinationsWithCost = destinations.filter((destination) => destination.costOfLiving != null)
+
+  const avgWifi =
+    destinationsWithWifi.length > 0
+      ? Math.round(
+          destinationsWithWifi.reduce((acc, destination) => acc + (destination.wifiSpeed ?? 0), 0) /
+            destinationsWithWifi.length
+        )
+      : 0
+
+  const avgCost =
+    destinationsWithCost.length > 0
+      ? Math.round(
+          destinationsWithCost.reduce((acc, destination) => acc + (destination.costOfLiving ?? 0), 0) /
+            destinationsWithCost.length
+        )
+      : 0
+
+  const countriesCount = new Set(destinations.map((destination) => destination.country)).size
+
   return (
     <div className="space-y-8 sm:space-y-10">
       <section className="hero-grid glass-surface relative overflow-hidden p-6 sm:p-8">
@@ -97,11 +63,11 @@ export default function DestinationsPage() {
             </div>
             <div className="rounded-xl border border-border/65 bg-background/65 p-3">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Avg Internet</p>
-              <p className="mt-1 text-xl font-semibold">61 Mbps</p>
+              <p className="mt-1 text-xl font-semibold">{avgWifi > 0 ? `${avgWifi} Mbps` : "N/A"}</p>
             </div>
             <div className="rounded-xl border border-border/65 bg-background/65 p-3">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Avg Budget</p>
-              <p className="mt-1 text-xl font-semibold">$1,450/mo</p>
+              <p className="mt-1 text-xl font-semibold">{avgCost > 0 ? `$${avgCost}/mo` : "N/A"}</p>
             </div>
           </div>
         </div>
@@ -123,20 +89,26 @@ export default function DestinationsPage() {
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-secondary/55 px-3 py-1">
                 <Globe2 className="size-3.5" />
-                20+ countries
+                {countriesCount} countries
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-secondary/55 px-3 py-1">
                 <TrendingUp className="size-3.5" />
-                Strong growth
+                Live from database
               </span>
             </div>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 2xl:grid-cols-3">
-            {destinations.map((destination) => (
-              <DestinationCard key={destination.id} destination={destination} />
-            ))}
-          </div>
+          {cardDestinations.length === 0 ? (
+            <div className="glass-surface rounded-2xl p-8 text-center text-muted-foreground">
+              No destinations found yet. Seed your database to get started.
+            </div>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 2xl:grid-cols-3">
+              {cardDestinations.map((destination) => (
+                <DestinationCard key={destination.id} destination={destination} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>
